@@ -2,6 +2,8 @@ package com.example.config;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.entity.RestBean;
+import com.example.service.AuthorizeService;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.io.IOException;
@@ -18,6 +21,9 @@ import java.io.IOException;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
+
+    @Resource
+    AuthorizeService authorizeService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -43,11 +49,17 @@ public class SecurityConfiguration {
                     conf.logoutSuccessUrl("/api/auth/login");  //退出登录成功后返回的页面
                     conf.permitAll();  //放行
                 })
+                .userDetailsService(authorizeService)
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(conf -> {  //没有权限访问其他页面的时候
                     conf.authenticationEntryPoint(this::commence);
                 })
                 .build();
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     //登录成功处理
