@@ -2,7 +2,6 @@ package com.example.config;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.entity.RestBean;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -52,19 +51,19 @@ public class SecurityConfiguration {
     }
 
     //登录成功处理
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(JSONObject.toJSONString(RestBean.success("登录成功")));
     }
 
     //登录失败处理
-    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(JSONObject.toJSONString(RestBean.failure(401, exception.getMessage())));
     }
 
     //未登录访问其他页面
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(JSONObject.toJSONString(RestBean.failure(401, authException.getMessage())));
     }
