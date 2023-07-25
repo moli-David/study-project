@@ -3,6 +3,8 @@
 import {EditPen, Lock, Message, User} from "@element-plus/icons-vue";
 import router from "@/router";
 import {reactive, ref} from "vue";
+import {ElMessage} from "element-plus";
+import {post} from "@/net";
 
 const form = reactive({
   username: '',
@@ -47,8 +49,14 @@ const rules = {
   email: [
     {required: true, message: '请输入邮箱地址', trigger: 'blur'},
     {type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'],},
+  ],
+  code: [
+    {required: true, message: '请输入验证码', trigger: 'blur'},
   ]
+
 }
+
+const formRef = ref()
 
 const isEmailValid = ref(false)
 
@@ -56,7 +64,24 @@ const onValiddate = (prop, isValid) => {
   if (prop === 'email') {
     isEmailValid.value = isValid
   }
+}
 
+const register = () => {
+  formRef.value.validate((isValid) => {
+    if(isValid) {
+
+    }else {
+      ElMessage.warning('请完整填写注册表单内容！')
+    }
+  })
+}
+
+const validateEmail = () => {
+  post('/api/auth/valid-email', {
+    email: form.email
+  },(message) => {
+    ElMessage.success(message)
+  })
 }
 </script>
 
@@ -67,7 +92,7 @@ const onValiddate = (prop, isValid) => {
       <div style="font-size: 14px;color: grey">欢迎进入注册页面，请输出信息开始注册吧！</div>
     </div>
     <div style="margin-top: 50px">
-      <el-form :model="form" :rules="rules" @validate="onValiddate">
+      <el-form :model="form" :rules="rules" @validate="onValiddate" ref="formRef">
         <el-form-item prop="username">
           <el-input v-model="form.username" type="text" placeholder="用户名">
             <template #prefix>
@@ -120,7 +145,7 @@ const onValiddate = (prop, isValid) => {
               </el-input>
             </el-col>
             <el-col :span="6" style="text-align: right">
-              <el-button type="success" :disabled="!isEmailValid">获取验证码</el-button>
+              <el-button @click="validateEmail" type="success" :disabled="!isEmailValid">获取验证码</el-button>
             </el-col>
           </el-row>
         </el-form-item>
@@ -131,7 +156,7 @@ const onValiddate = (prop, isValid) => {
 
 
     <div style="margin-top: 40px">
-      <el-button type="warning" style="width: 300px" plain>立即注册</el-button>
+      <el-button type="warning" style="width: 300px" @click="register" plain>立即注册</el-button>
     </div>
 
     <div style="font-size: 14px;margin-top: 20px">

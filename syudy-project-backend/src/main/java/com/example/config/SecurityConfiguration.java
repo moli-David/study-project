@@ -40,6 +40,7 @@ public class SecurityConfiguration {
         return http
                 //以下是验证请求拦截和放行配置
                 .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers("/api/auth/**").permitAll();
                     auth.anyRequest().authenticated();  //将所有请求全部拦截，一律需要验证
                 })
                 //以下是表单登录相关配置
@@ -61,6 +62,7 @@ public class SecurityConfiguration {
                     conf.tokenRepository(this.tokenRepository());
                     conf.tokenValiditySeconds(3600 * 24 * 7);  //记住我时间
                 })
+
 
                 .logout(conf -> {
                     conf.logoutUrl("/api/auth/logout");  //退出登录页面
