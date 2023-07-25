@@ -13,10 +13,12 @@
         <div style="margin-top: 5px">本项目采用Java boot3+Security+vue3+Element Plus等技术的项目</div>
       </div>
     </div>
-    <div style="width: 500px;background: white">
-      <transition name="el-fade-in-linear">
-        <router-view/>
-      </transition>
+    <div style="width: 500px;background: white;z-index: 1">
+      <router-view v-slot="{ Component }">
+        <transition name="el-fade-in-linear">
+          <component :is="Component" />
+        </transition>
+      </router-view>
 
     </div>
   </div>
