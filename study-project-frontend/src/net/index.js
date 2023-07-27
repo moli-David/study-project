@@ -16,11 +16,10 @@ function post(url, data, success, failure = defaultFailure, error = defaultError
         else
             failure(data.message, data.status)
     }).catch(error)
-
 }
 
-function get(url, success, failure = defaultFailure(), error = defaultError()) {
-    axios.get(url, {
+function get(url, success, failure = defaultFailure, error = defaultError) {
+    axios.post(url, {
         withCredentials: true
     }).then(({data}) => {
         if (data.success)
@@ -28,7 +27,6 @@ function get(url, success, failure = defaultFailure(), error = defaultError()) {
         else
             failure(data.message, data.status)
     }).catch(error)
-
 }
 
 export {get, post}

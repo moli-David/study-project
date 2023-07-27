@@ -1,6 +1,6 @@
 package com.example.service.impl;
 
-import com.example.entity.Account;
+import com.example.entity.auth.Account;
 import com.example.mapper.UserMapper;
 import com.example.service.AuthorizeService;
 import jakarta.annotation.Resource;
@@ -59,14 +59,18 @@ public class AuthorizeServiceImpl implements AuthorizeService {
      * 5. 用户在注册时，再从Redis里面取出对应键值对，然后看验证码是否一致
      */
     @Override
-    public String sendValidateEmail(String email, String sessionId) {
-        String key = "email:" + sessionId + ":" + email;
+    public String sendValidateEmail(String email, String sessionId, boolean hasAccount) {
+        String key = "email:" + sessionId + ":" + email + ":" + hasAccount;
         if (Boolean.TRUE.equals(template.hasKey(key))) {
             Long expire = Optional.ofNullable(template.getExpire(key, TimeUnit.SECONDS)).orElse(0L);
             if (expire > 120) {
                 return "请求频繁，请稍后再试！";
             }
-            if (mapper.findAccountByNameOrEmail(email) != null) {
+            Account account = mapper.findAccountByNameOrEmail(email);
+            if (hasAccount && account == null) {
+                return "用户不存在";
+            }
+            if (!hasAccount && account != null) {
                 return "邮箱已被注册！";
             }
         }
@@ -89,7 +93,7 @@ public class AuthorizeServiceImpl implements AuthorizeService {
 
     @Override
     public String validateAndRegister(String username, String password, String email, String code, String sessionId) {
-        String key = "email:" + sessionId + ":" + email;
+        String key = "email:" + sessionId + ":" + email + ":false";
         if (Boolean.TRUE.equals(template.hasKey(key))) {
 
             String s = template.opsForValue().get(key);
@@ -97,6 +101,11 @@ public class AuthorizeServiceImpl implements AuthorizeService {
                 return "验证码失效，请重新请求";
             }
             if (s.equals(code)) {
+                Account account = mapper.findAccountByNameOrEmail(username);
+                if (account != null) {
+                    return "此用户名已被注册，请更换用户名";
+                }
+                template.delete(key);
                 password = encoder.encode(password);
                 if (mapper.createAccount(username, password, email) > 0) {
                     return null;
@@ -111,5 +120,31 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         }
 
 
+    }
+
+    @Override
+    public String validateOnly(String email, String code, String sessionId) {
+        String key = "email:" + sessionId + ":" + email + ":true";
+        if (Boolean.TRUE.equals(template.hasKey(key))) {
+
+            String s = template.opsForValue().get(key);
+            if (s == null) {
+                return "验证码失效，请重新请求";
+            }
+            if (s.equals(code)) {
+                template.delete(key);
+                return null;
+            } else {
+                return "验证码错误，请重新输入";
+            }
+        } else {
+            return "请先获取验证码";
+        }
+    }
+
+    @Override
+    public boolean resetPassword(String password, String email) {
+        password = encoder.encode(password);
+        return mapper.resetPasswordByEmail(password, email) > 0;
     }
 }

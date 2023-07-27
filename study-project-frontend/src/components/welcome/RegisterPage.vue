@@ -90,12 +90,15 @@ const register = () => {
 }
 
 const validateEmail = () => {
-  post('/api/auth/valid-email', {
+  coldTime.value = 60
+  post('/api/auth/valid-register-email', {
     email: form.email
   },(message) => {
     ElMessage.success(message)
-    coldTime.value = 60
     setInterval(() => coldTime.value--, 1000)
+  }, (message) => {
+    ElMessage.warning(message)
+    coldTime.value = 0
   })
 }
 
@@ -151,7 +154,7 @@ const validateEmail = () => {
 
         <el-form-item prop="code">
           <el-row :gutter="10">
-            <el-col :span="17" style="text-align: left">
+            <el-col :span="18" style="text-align: left">
               <el-input v-model="form.code" :maxlength="6" type="text" placeholder="请输入验证码">
                 <template #prefix>
                   <el-icon>

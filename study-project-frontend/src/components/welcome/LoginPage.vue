@@ -2,25 +2,33 @@
 import {Lock, User} from "@element-plus/icons-vue";
 import {reactive} from "vue";
 import {ElMessage} from "element-plus";
-import {post} from "@/net";
+import {get, post} from "@/net";
 import router from "@/router";
+import {useStore} from "@/stores";
+
 const form = reactive({
-  username:'',
-  password:'',
+  username: '',
+  password: '',
   remember: false
 })
+const store = useStore()
 
 const login = () => {
   if (!form.username || !form.password) {
     ElMessage.warning('请填写用户名和密码！')
-  }else {
+  } else {
     post('/api/auth/login', {
       username: form.username,
       password: form.password,
       remember: form.remember
-    },(message) => {
+    }, (message) => {
       ElMessage.success(message)
-      router.push('/index')
+      get('/api/user/me', (message) => {
+        store.auth.user = message
+        router.push('/index')
+      }, () => {
+        store.auth.user = null
+      })
     })
   }
 }
@@ -33,7 +41,7 @@ const login = () => {
       <div style="font-size: 14px;color: grey">请输入账号密码进行登录</div>
     </div>
     <div style="margin-top: 50px">
-      <el-input v-model="form.username" type="text" placeholder="用户名/邮箱">
+      <el-input v-model="form.username" type="text" placeholder="用户名">
         <template #prefix>
           <el-icon>
             <User/>
@@ -52,10 +60,10 @@ const login = () => {
     <div style="margin-top: 10px">
       <el-row>
         <el-col :span="12" style="text-align: left">
-          <el-checkbox  v-model="form.remember" label="记住我" size="large"/>
+          <el-checkbox v-model="form.remember" label="记住我" size="large"/>
         </el-col>
         <el-col :span="12" style="text-align: right">
-          <el-link>忘记密码？</el-link>
+          <el-link @click="router.push('/forget')">忘记密码？</el-link>
         </el-col>
       </el-row>
     </div>
